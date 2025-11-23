@@ -83,7 +83,11 @@ class AppStateManagerClass {
       activeCitationIndex: null,
 
       // PDF Library
-      currentLibraryPdfId: null
+      currentLibraryPdfId: null,
+
+      // Gemini Files API
+      geminiFileUri: null,
+      geminiFileName: null
     };
 
     this.subscribers = new Set();
@@ -239,7 +243,11 @@ class AppStateManagerClass {
       activeCitationIndex: null,
 
       // PDF Library
-      currentLibraryPdfId: null
+      currentLibraryPdfId: null,
+
+      // Gemini Files API
+      geminiFileUri: null,
+      geminiFileName: null
     };
 
     if (!preserveSubscribers) {

@@ -33,6 +33,32 @@ export interface PICORequest {
 }
 
 /**
+ * Grounding metadata from File Search (optional)
+ */
+export interface GroundingMetadata {
+    groundingChunks?: Array<{
+        retrievedContext?: {
+            uri: string;
+            title?: string;
+            snippet?: string;
+        };
+        web?: {
+            uri: string;
+            title: string;
+        };
+    }>;
+    groundingSupports?: Array<{
+        segment: {
+            startIndex: number;
+            endIndex: number;
+            text: string;
+        };
+        groundingChunkIndices: number[];
+        confidenceScores?: number[];
+    }>;
+}
+
+/**
  * PICO-T generation response
  */
 export interface PICOResponse {
@@ -42,6 +68,7 @@ export interface PICOResponse {
     outcomes: string;
     timing: string;
     study_type: string;
+    groundingMetadata?: GroundingMetadata;
 }
 
 /**
@@ -57,6 +84,7 @@ export interface SummaryRequest {
  */
 export interface SummaryResponse {
     summary: string;
+    groundingMetadata?: GroundingMetadata;
 }
 
 /**

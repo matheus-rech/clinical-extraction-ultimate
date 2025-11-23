@@ -32,6 +32,10 @@ import StatusManager from '../utils/status';
 import LRUCache from '../utils/LRUCache';
 import { formatErrorMessage, logErrorWithContext, categorizeAIError } from '../utils/aiErrorHandler';
 import BackendAIClient from './BackendAIClient';
+import { isBackendDisabled } from './BackendClient';
+import { DirectGeminiClient } from './DirectGeminiClient';
+import FileSearchCitationExtractor from './FileSearchCitationExtractor';
+import { FileSearchConfig } from '../config';
 
 // ==================== CONFIGURATION ====================
 
@@ -149,6 +153,88 @@ function blobToBase64(blob: Blob): Promise<string> {
     });
 }
 
+/**
+ * Automatically processes citations from AI response grounding metadata
+ * and highlights them in the PDF. Runs transparently in the background.
+ *
+ * @param groundingMetadata - Grounding metadata from Gemini response
+ * @param responseText - The AI response text
+ */
+async function processAndHighlightCitations(
+    groundingMetadata: any,
+    responseText: string
+): Promise<void> {
+    // Check if File Search is enabled
+    if (!FileSearchConfig.enabled) {
+        return;
+    }
+
+    // Check if we have grounding metadata
+    if (!groundingMetadata?.groundingChunks || !groundingMetadata?.groundingSupports) {
+        console.log('[AIService] No grounding metadata to process');
+        return;
+    }
+
+    try {
+        // Extract citations from grounding metadata
+        const citations = FileSearchCitationExtractor.extractCitations(
+            responseText,
+            groundingMetadata
+        );
+
+        if (citations.length === 0) {
+            console.log('[AIService] No citations extracted from grounding metadata');
+            return;
+        }
+
+        // Get PDF text by page for location search
+        const state = AppStateManager.getState();
+        if (!state.pdfDoc) {
+            console.log('[AIService] No PDF loaded, skipping citation highlighting');
+            return;
+        }
+
+        // Build page text map
+        const pdfTextByPage = new Map<number, string>();
+        for (let i = 1; i <= state.totalPages; i++) {
+            try {
+                const pageData = await getPageText(i);
+                pdfTextByPage.set(i, pageData.fullText);
+            } catch (error) {
+                console.warn(`[AIService] Failed to get text for page ${i}`);
+            }
+        }
+
+        // Locate citations in PDF
+        const locatedCitations = await FileSearchCitationExtractor.locateCitationsInPDF(
+            citations,
+            pdfTextByPage
+        );
+
+        // Highlight citations in PDF using PDFRenderer
+        const highlightFn = (window as any).ClinicalExtractor?.highlightRegion;
+        if (highlightFn) {
+            let highlightedCount = 0;
+            for (const citation of locatedCitations) {
+                if (citation.pageNumber && citation.boundingBox) {
+                    FileSearchCitationExtractor.highlightCitation(citation, highlightFn);
+                    highlightedCount++;
+                }
+            }
+            if (highlightedCount > 0) {
+                console.log(`[AIService] Highlighted ${highlightedCount} citations from File Search`);
+            }
+        }
+
+        // Log citation info for debugging
+        console.log(`[AIService] Processed ${locatedCitations.length} citations from File Search grounding`);
+
+    } catch (error) {
+        // Don't fail the main operation if citation processing fails
+        console.error('[AIService] Citation processing failed (non-critical):', error);
+    }
+}
+
 // ==================== AI EXTRACTION FUNCTIONS ====================
 
 /**
@@ -205,6 +291,14 @@ async function generatePICO(): Promise<void> {
         ExtractionTracker.addExtraction({ fieldName: 'timing (AI)', text: data.timing, page: 0, coordinates: coords, method: 'backend-ai-pico', documentName: state2.documentName });
         ExtractionTracker.addExtraction({ fieldName: 'studyType (AI)', text: data.study_type, page: 0, coordinates: coords, method: 'backend-ai-pico', documentName: state2.documentName });
 
+        // Process File Search citations in the background (if available)
+        if (data.groundingMetadata) {
+            const responseText = `${data.population} ${data.intervention} ${data.comparator} ${data.outcomes} ${data.timing} ${data.study_type}`;
+            processAndHighlightCitations(data.groundingMetadata, responseText).catch(err => {
+                console.warn('[AIService] Citation highlighting failed:', err);
+            });
+        }
+
         StatusManager.show('✨ PICO-T fields auto-populated by AI!', 'success');
 
     } catch (error: any) {
@@ -257,6 +351,13 @@ async function generateSummary(): Promise<void> {
             method: 'backend-ai-summary',
             documentName: state2.documentName
         });
+
+        // Process File Search citations in the background (if available)
+        if (result.groundingMetadata) {
+            processAndHighlightCitations(result.groundingMetadata, result.summary).catch(err => {
+                console.warn('[AIService] Citation highlighting failed:', err);
+            });
+        }
 
         StatusManager.show('✨ Key findings summary generated by AI!', 'success');
 
@@ -392,8 +493,18 @@ async function handleExtractTables(): Promise<void> {
         const documentText = await getAllPdfText();
         if (!documentText) return;
 
-        // Call backend AI service for table extraction
-        const result = await BackendAIClient.extractTables({ pdf_text: documentText });
+        // Use DirectGeminiClient when backend is disabled, otherwise try backend first
+        let result;
+        if (isBackendDisabled()) {
+            result = await DirectGeminiClient.extractTables({ pdf_text: documentText });
+        } else {
+            try {
+                result = await BackendAIClient.extractTables({ pdf_text: documentText });
+            } catch (backendError) {
+                console.warn('Backend table extraction failed, falling back to DirectGeminiClient:', backendError);
+                result = await DirectGeminiClient.extractTables({ pdf_text: documentText });
+            }
+        }
 
         if (result.tables && result.tables.length > 0 && resultsContainer) {
             renderTables(result.tables, resultsContainer);

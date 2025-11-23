@@ -57,3 +57,7 @@ venv/
 ENV/
 env/
 .venv
+
+# Frontend environment files
+.env.local
+.env*.local

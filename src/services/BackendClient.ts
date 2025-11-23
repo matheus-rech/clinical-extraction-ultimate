@@ -7,25 +7,32 @@
 // Dynamically construct backend URL based on environment
 let BACKEND_URL = import.meta.env.VITE_BACKEND_API_URL || '';
 
-// If BACKEND_URL is localhost, convert it to the current Replit domain
-if (BACKEND_URL.includes('localhost')) {
-  const currentHost = window.location.hostname;
-  const protocol = window.location.protocol;
-  // Replace localhost with current host, keep the port
-  BACKEND_URL = BACKEND_URL.replace(/localhost/, currentHost);
-}
+// Check if backend is explicitly disabled
+const BACKEND_DISABLED = BACKEND_URL === 'disabled' || BACKEND_URL === 'none' || BACKEND_URL === '';
 
-// If no BACKEND_URL and we're not in localhost dev, use current domain with port 8080
-if (!BACKEND_URL) {
-  const currentHost = window.location.hostname;
-  const protocol = window.location.protocol;
-  // In Replit, use the same domain with port 8080
-  if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-    BACKEND_URL = `${protocol}//${currentHost}:8080`;
-  } else {
-    // For local dev, use localhost:8080
-    BACKEND_URL = `${protocol}//localhost:8080`;
+if (!BACKEND_DISABLED) {
+  // If BACKEND_URL is localhost, convert it to the current Replit domain
+  if (BACKEND_URL.includes('localhost')) {
+    const currentHost = window.location.hostname;
+    const protocol = window.location.protocol;
+    // Replace localhost with current host, keep the port
+    BACKEND_URL = BACKEND_URL.replace(/localhost/, currentHost);
   }
+
+  // If no BACKEND_URL and we're not in localhost dev, use current domain with port 8080
+  if (!BACKEND_URL) {
+    const currentHost = window.location.hostname;
+    const protocol = window.location.protocol;
+    // In Replit, use the same domain with port 8080
+    if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+      BACKEND_URL = `${protocol}//${currentHost}:8080`;
+    } else {
+      // For local dev, use localhost:8080
+      BACKEND_URL = `${protocol}//localhost:8080`;
+    }
+  }
+} else {
+  BACKEND_URL = '';
 }
 
 // Log the backend URL for debugging
@@ -437,4 +444,5 @@ class BackendClient {
   }
 }
 
+export const isBackendDisabled = () => BACKEND_DISABLED;
 export default new BackendClient();

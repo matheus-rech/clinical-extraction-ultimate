@@ -43,6 +43,8 @@ import {
     handleImageAnalysis,
     handleDeepAnalysis
 } from './services/AIService';
+import { MultiProviderAIClient } from './services/MultiProviderAIClient';
+import { AIProvider } from './config';
 import AuthManager from './services/AuthManager';
 import SearchService from './services/SearchService';
 import SemanticSearchService from './services/SemanticSearchService';
@@ -73,6 +75,13 @@ import { getCitationSidebar } from './components/CitationSidebar';
 import { citationAPIClient } from './services/CitationAPIClient';
 import citationAuditTrail from './services/CitationAuditTrail';
 import citationUIEnhancer from './services/CitationUIEnhancer';
+import FileSearchCitationExtractor from './services/FileSearchCitationExtractor';
+import { PDFProcessingAgent } from './services/PDFProcessingAgent';
+import { PDFPageRenderer } from './services/PDFPageRenderer';
+import { CoordinateTransformer } from './services/CoordinateTransformer';
+import LocalPDFLibrary from './services/LocalPDFLibrary';
+import GeminiFilesService from './services/GeminiFilesService';
+import PDFDatabaseVisionIntegration from './services/PDFDatabaseVisionIntegration';
 
 // Utilities
 import {
@@ -963,6 +972,46 @@ function exposeWindowAPI() {
         // New: Multi-Agent Pipeline (1)
         runFullAIPipeline,
 
+        // New: Vision-Based PDF Processing Agent (5)
+        PDFProcessingAgent,
+        PDFPageRenderer,
+        CoordinateTransformer,
+        processFullDocument: async (options?: any) => {
+            return AgentOrchestrator.processFullDocument(options);
+        },
+        highlightExtraction: async (coordinates: Map<string, any>, fieldName?: string) => {
+            return AgentOrchestrator.highlightExtraction(coordinates, fieldName);
+        },
+
+        // AI Provider Management
+        setAIProvider: (provider: AIProvider) => {
+            MultiProviderAIClient.setProvider(provider);
+        },
+        getAIProvider: () => {
+            return MultiProviderAIClient.getProvider();
+        },
+        getAvailableProviders: () => {
+            return MultiProviderAIClient.getAvailableProviders();
+        },
+        MultiProviderAIClient,
+
+        // Local PDF Library (IndexedDB)
+        LocalPDFLibrary,
+        storeCurrentPDF: async (name?: string) => LocalPDFLibrary.storeCurrentPDF(name),
+        loadPDFFromLibrary: async (id: string) => LocalPDFLibrary.loadPDF(id),
+        deletePDFFromLibrary: async (id: string) => LocalPDFLibrary.deletePDF(id),
+
+        // Vision Extraction Integration
+        PDFDatabaseVisionIntegration,
+        setAutoExtraction: (enabled: boolean) => PDFDatabaseVisionIntegration.setAutoExtraction(enabled),
+        isAutoExtractionEnabled: () => PDFDatabaseVisionIntegration.isAutoExtractionEnabled(),
+        extractAndStoreResults: async (pdfId: string) => PDFDatabaseVisionIntegration.extractAndStoreResults(pdfId),
+        getCachedExtraction: (pdfId: string) => PDFDatabaseVisionIntegration.getCachedExtraction(pdfId),
+        forceReExtraction: async (pdfId: string) => PDFDatabaseVisionIntegration.forceReExtraction(pdfId),
+        getExtractionStats: () => PDFDatabaseVisionIntegration.getStats(),
+        getCacheMetadata: () => PDFDatabaseVisionIntegration.getCacheMetadata(),
+        exportExtractionData: (pdfId: string, format?: 'json' | 'csv') => PDFDatabaseVisionIntegration.exportExtractionData(pdfId, format),
+
         SemanticSearchService,
         AnnotationService,
         BackendProxyService,
@@ -971,6 +1020,7 @@ function exposeWindowAPI() {
 
         toggleSemanticSearch,
         performSemanticSearch,
+        triggerVisionExtraction,
         jumpToPage,
         toggleAnnotationTools,
         setAnnotationTool,
@@ -998,6 +1048,7 @@ function exposeWindowAPI() {
         citationUIEnhancer,
         highlightCitation: highlightCitationOnPDF,
 
+        // Recovery functions
         triggerCrashStateSave,
         triggerManualRecovery
     };
@@ -1009,7 +1060,119 @@ function exposeWindowAPI() {
     // Also expose SamplePDFService methods directly
     (window as any).SamplePDFService = SamplePDFService;
 
+    // Expose GeminiFilesService for debugging
+    (window as any).GeminiFilesService = GeminiFilesService;
+
     console.log('Clinical Extractor API exposed to window');
+}
+
+// ==================== TEST VISION EXTRACTION ====================
+
+/**
+ * Test Vision-Based PDF Extraction
+ * This function triggers the PDFProcessingAgent to extract data using Gemini Vision API
+ */
+async function triggerVisionExtraction() {
+    const state = AppStateManager.getState();
+
+    // Validate prerequisites
+    if (!state.pdfDoc) {
+        StatusManager.show('Please load a PDF first', 'warning');
+        return;
+    }
+
+    if (state.isProcessing) {
+        StatusManager.show('Already processing...', 'warning');
+        return;
+    }
+
+    // Show status
+    const visionStatusEl = document.getElementById('vision-status');
+    if (visionStatusEl) {
+        visionStatusEl.style.display = 'inline';
+        visionStatusEl.textContent = 'Initializing...';
+    }
+
+    AppStateManager.setState({ isProcessing: true });
+    StatusManager.showLoading(true);
+    StatusManager.show('👁️ Starting Vision-Based Extraction...', 'info');
+
+    try {
+        console.log('='.repeat(60));
+        console.log('TEST: VISION-BASED PDF PROCESSING AGENT');
+        console.log('='.repeat(60));
+
+        // Call the PDFProcessingAgent
+        const result = await PDFProcessingAgent.processDocument({
+            dpi: 150,           // 150 DPI for balance between quality and cost
+            pagesPerBatch: 3,   // Process 3 pages per API call
+            maxParallel: 2      // 2 parallel batches
+        });
+
+        if (!result) {
+            console.warn('Vision extraction returned null');
+            StatusManager.show('Vision extraction failed - check console for details', 'error');
+            return;
+        }
+
+        console.log('\n📊 EXTRACTION RESULTS:');
+        console.log('='.repeat(60));
+        console.log('Pages Processed:', result.processingStats.pagesProcessed);
+        console.log('Total Time:', `${result.processingStats.totalTime}ms`);
+        console.log('API Calls:', result.processingStats.apiCalls);
+        console.log('Estimated Cost:', `$${result.processingStats.estimatedCost.toFixed(4)}`);
+        console.log('Fields with Coordinates:', result.coordinates.size);
+        console.log('='.repeat(60));
+
+        // Display coordinate information
+        if (result.coordinates.size > 0) {
+            console.log('\n🎯 EXTRACTED FIELDS WITH COORDINATES:');
+            let fieldIndex = 1;
+            for (const [fieldName, coords] of result.coordinates.entries()) {
+                console.log(`  ${fieldIndex}. ${fieldName}: ${coords.length} coordinate(s)`);
+                coords.forEach((coord, idx) => {
+                    console.log(`     - Coord ${idx + 1}: Page ${coord.pageNum}, Bbox [${coord.normalizedX.toFixed(3)}, ${coord.normalizedY.toFixed(3)}, ${coord.normalizedWidth.toFixed(3)}, ${coord.normalizedHeight.toFixed(3)}]`);
+                });
+                fieldIndex++;
+            }
+        }
+
+        // Display extraction data
+        if (result.extraction) {
+            console.log('\n📝 EXTRACTED DATA:');
+            console.log(JSON.stringify(result.extraction, null, 2));
+        }
+
+        // Store result for debugging
+        (window as any)._lastVisionResult = result;
+        console.log('\n✅ Result stored in window._lastVisionResult');
+        console.log('='.repeat(60));
+
+        // Update UI status
+        const statusText = `✅ Vision extraction complete! ${result.coordinates.size} fields with coordinates`;
+        if (visionStatusEl) {
+            visionStatusEl.textContent = statusText;
+        }
+        StatusManager.show(statusText, 'success', 8000);
+
+        // Optional: Highlight extractions on current page
+        if (result.coordinates.size > 0) {
+            console.log('\n🔍 Highlighting extractions on current page...');
+            await PDFProcessingAgent.highlightExtractions(result.coordinates);
+            console.log('✓ Highlighting complete');
+        }
+
+    } catch (error: any) {
+        console.error('Vision extraction error:', error);
+        console.error('Stack trace:', error.stack);
+        StatusManager.show(`Vision extraction failed: ${error.message}`, 'error', 10000);
+        if (visionStatusEl) {
+            visionStatusEl.textContent = '❌ Failed';
+        }
+    } finally {
+        AppStateManager.setState({ isProcessing: false });
+        StatusManager.showLoading(false);
+    }
 }
 
 // ==================== CLEANUP REGISTRATION ====================
@@ -1060,17 +1223,35 @@ async function initializeApp() {
         const isAuthenticated = await AuthManager.ensureAuthenticated();
         console.log('✓ Backend authentication initialized');
 
-        // Load PDF library only if authenticated
+        // Initialize local PDF library (IndexedDB - always available)
+        try {
+            console.log('📚 Initializing local PDF library...');
+            await LocalPDFLibrary.init();
+            console.log('✓ Local PDF library initialized');
+        } catch (error) {
+            console.warn('⚠️ Could not initialize local PDF library:', error);
+        }
+
+        // Initialize vision extraction integration
+        try {
+            console.log('👁️ Initializing vision extraction integration...');
+            await PDFDatabaseVisionIntegration.init();
+            console.log('✓ Vision extraction integration initialized');
+        } catch (error) {
+            console.warn('⚠️ Could not initialize vision extraction integration:', error);
+        }
+
+        // Load backend PDF library only if authenticated
         if (isAuthenticated) {
             try {
-                console.log('📚 Loading PDF library...');
+                console.log('📚 Loading backend PDF library...');
                 await PDFLibraryService.populateLibraryDropdown();
-                console.log('✓ PDF library loaded');
+                console.log('✓ Backend PDF library loaded');
             } catch (error) {
-                console.warn('⚠️ Could not load PDF library:', error);
+                console.warn('⚠️ Could not load backend PDF library:', error);
             }
         } else {
-            console.log('ℹ️ Running in frontend-only mode - PDF library not available');
+            console.log('ℹ️ Running in frontend-only mode - using local PDF library only');
         }
 
         // Check backend health

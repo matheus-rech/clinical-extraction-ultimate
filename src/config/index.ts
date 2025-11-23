@@ -102,3 +102,63 @@ export const DEFAULT_SCALE = 1.0;
  * Total number of steps in the extraction wizard.
  */
 export const TOTAL_WIZARD_STEPS = 8;
+
+// ==================== AI CONFIGURATION ====================
+
+/**
+ * AI Provider types
+ */
+export type AIProvider = 'gemini' | 'anthropic' | 'openai';
+
+/**
+ * Multi-provider AI configuration from environment variables
+ */
+export const AIConfig = {
+  /** Current provider (can be changed at runtime) */
+  provider: (import.meta.env.VITE_AI_PROVIDER || 'gemini') as AIProvider,
+
+  /** Gemini configuration */
+  gemini: {
+    model: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.0-flash',
+    apiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+  },
+
+  /** Anthropic configuration */
+  anthropic: {
+    model: import.meta.env.VITE_ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
+    apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY || '',
+  },
+
+  /** OpenAI configuration */
+  openai: {
+    model: import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o',
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
+  },
+
+  /** Shared settings */
+  temperature: parseFloat(import.meta.env.VITE_AI_TEMPERATURE || '0.2'),
+  outputFormat: import.meta.env.VITE_AI_OUTPUT_FORMAT || 'json',
+
+  /** Legacy compatibility */
+  model: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.0-flash',
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY || '',
+} as const;
+
+// ==================== FILE SEARCH CONFIGURATION ====================
+
+/**
+ * File Search tool configuration for parallel citation extraction
+ */
+export const FileSearchConfig = {
+  /** Enable file search functionality */
+  enabled: import.meta.env.VITE_FILE_SEARCH_ENABLED === 'true',
+
+  /** Run file search in parallel with main PDF extraction */
+  parallel: import.meta.env.VITE_FILE_SEARCH_PARALLEL === 'true',
+
+  /** Maximum number of cached file search stores */
+  maxCacheSize: 10,
+
+  /** Cache TTL in days */
+  cacheTTLDays: 7,
+} as const;

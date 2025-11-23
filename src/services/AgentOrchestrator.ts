@@ -15,6 +15,8 @@
 import type { ExtractedFigure } from './FigureExtractor';
 import type { ExtractedTable } from './TableExtractor';
 import MedicalAgentBridge from './MedicalAgentBridge';
+import { PDFProcessingAgent } from './PDFProcessingAgent';
+import type { PDFProcessingOptions, PDFProcessingResult } from '../types';
 
 // ==================== TYPE DEFINITIONS ====================
 
@@ -346,6 +348,38 @@ class AgentOrchestrator {
 
         if (allConfidences.length === 0) return 0;
         return allConfidences.reduce((a, b) => a + b, 0) / allConfidences.length;
+    }
+
+    // ==================== FULL DOCUMENT PROCESSING ====================
+
+    /**
+     * Process entire PDF with vision-based extraction
+     *
+     * This is the main entry point for the new PDF Processing Agent
+     * that uses vision to extract data with bounding box coordinates.
+     */
+    async processFullDocument(
+        options?: PDFProcessingOptions
+    ): Promise<PDFProcessingResult | null> {
+        console.log('🔬 Starting Full Document Processing with Vision...');
+        return PDFProcessingAgent.processDocument(options);
+    }
+
+    /**
+     * Highlight extracted data on PDF
+     */
+    async highlightExtraction(
+        coordinates: Map<string, import('../types').BoundingBoxCoordinate[]>,
+        fieldName?: string
+    ): Promise<void> {
+        return PDFProcessingAgent.highlightExtractions(coordinates, fieldName);
+    }
+
+    /**
+     * Clear all extraction highlights
+     */
+    clearHighlights(): void {
+        PDFProcessingAgent.clearHighlights();
     }
 }
 

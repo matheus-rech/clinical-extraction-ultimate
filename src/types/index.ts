@@ -186,6 +186,12 @@ export interface AppState {
   // PDF Library
   currentLibraryPdfId: string | null;
 
+  // Gemini Files API
+  /** URI for uploaded file in Gemini Files API */
+  geminiFileUri: string | null;
+  /** File name in Gemini Files API (e.g., "files/abc123") */
+  geminiFileName: string | null;
+
   // ==================== NEW: FIGURE & TABLE EXTRACTION 🖼️📊 ====================
   /**
    * Extracted figures from PDF using operator interception
@@ -223,12 +229,120 @@ export interface AppState {
    * Stored when PDF is loaded to enable File Search uploads
    */
   pdfBase64Data?: string;
+
+  // ==================== NEW: VISION-BASED PDF EXTRACTION 👁️ ====================
+  /**
+   * Vision extraction result from PDFProcessingAgent with coordinates
+   * Used for citation highlighting and structured data extraction
+   */
+  visionExtractionData?: PDFProcessingResult;
+  /**
+   * Last extraction metadata (pdfId, timestamp, cached status)
+   */
+  lastExtraction?: {
+    pdfId: string;
+    timestamp: number;
+    cached: boolean;
+  };
 }
 
 // Re-export citation types for convenience
 export type { TextChunk, Citation, CitationMap, BoundingBox, AIResponse } from '../services/CitationService';
 // Re-export text structure types for convenience
 export type { Section, Paragraph, StructuredText } from '../services/TextStructureService';
+
+// ==================== PDF PROCESSING AGENT TYPES ====================
+
+/**
+ * Bounding box with page reference and normalized coordinates
+ */
+export interface BoundingBoxCoordinate {
+  /** Page number (1-indexed) */
+  pageNum: number;
+  /** X in PDF coordinates */
+  x: number;
+  /** Y in PDF coordinates */
+  y: number;
+  /** Width in PDF coordinates */
+  width: number;
+  /** Height in PDF coordinates */
+  height: number;
+  /** Original normalized X (0-1) */
+  normalizedX: number;
+  /** Original normalized Y (0-1) */
+  normalizedY: number;
+  /** Original normalized width (0-1) */
+  normalizedWidth: number;
+  /** Original normalized height (0-1) */
+  normalizedHeight: number;
+}
+
+/**
+ * Single extracted data item with coordinates
+ */
+export interface ExtractedDataWithCoordinates {
+  /** Field name (e.g., "studyIdentification.title") */
+  fieldName: string;
+  /** Extracted value */
+  value: any;
+  /** Confidence score (0-1) */
+  confidence: number;
+  /** Bounding box coordinates for highlighting */
+  coordinates: BoundingBoxCoordinate[];
+  /** Exact quote from source */
+  sourceQuote: string;
+}
+
+/**
+ * Vision extraction result from a single page
+ */
+export interface PageExtractionResult {
+  /** Page number */
+  pageNum: number;
+  /** Extracted data items */
+  extractions: ExtractedDataWithCoordinates[];
+  /** Page metadata */
+  metadata: {
+    hasTable: boolean;
+    hasFigure: boolean;
+    sectionType: string;
+  };
+}
+
+/**
+ * Full PDF processing result
+ */
+export interface PDFProcessingResult {
+  /** Full extraction matching schema */
+  extraction: any; // ClinicalStudyExtraction from schema
+  /** Map of field names to coordinates */
+  coordinates: Map<string, BoundingBoxCoordinate[]>;
+  /** Processing statistics */
+  processingStats: {
+    totalTime: number;
+    pagesProcessed: number;
+    apiCalls: number;
+    estimatedCost: number;
+  };
+  /** Warnings and issues */
+  warnings: string[];
+}
+
+/**
+ * Options for PDF processing
+ */
+export interface PDFProcessingOptions {
+  /** Use File Search for grounding */
+  useFileSearch?: boolean;
+  /** Target specific fields only */
+  targetFields?: string[];
+  /** DPI for image rendering */
+  dpi?: number;
+  /** Pages per API batch */
+  pagesPerBatch?: number;
+  /** Maximum parallel API calls */
+  maxParallel?: number;
+}
 
 // ==================== VALIDATION TYPES ====================
 

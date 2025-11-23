@@ -85,6 +85,14 @@
             position: relative;
         }
 
+        .pdf-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
         .trace-panel {
             width: 20%;
             background: var(--background-white);
@@ -925,27 +933,72 @@
             transform: scale(1.1);
         }
 
-        /* Collapsed panel states */
+        /* Collapsed panel states - keep toggle visible */
         .form-panel.collapsed {
-            width: 0 !important;
-            padding: 0 !important;
+            width: 40px !important;
+            min-width: 40px !important;
+            padding: 8px !important;
             overflow: hidden !important;
-            min-width: 0 !important;
+        }
+        .form-panel.collapsed > *:not(.panel-header) {
+            display: none !important;
+        }
+        .form-panel.collapsed .panel-header {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            padding: 0;
+            border: none;
+            margin: 0;
+        }
+        .form-panel.collapsed .panel-header h1 {
+            font-size: 14px;
+            margin: 8px 0;
+        }
+        .form-panel.collapsed .panel-toggle {
+            writing-mode: horizontal-tb;
+            transform: rotate(180deg);
         }
 
         .pdf-panel.collapsed {
-            width: 0 !important;
-            padding: 0 !important;
+            width: 40px !important;
+            min-width: 40px !important;
+            padding: 8px !important;
             overflow: hidden !important;
-            min-width: 0 !important;
+        }
+        .pdf-panel.collapsed > *:not(.pdf-controls):not(.compact-toolbar) {
+            display: none !important;
+        }
+        .pdf-panel.collapsed .pdf-controls {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            flex-direction: column;
+            gap: 4px;
+        }
+        .pdf-panel.collapsed .pdf-controls > *:not(.panel-toggle) {
+            display: none !important;
+        }
+        .pdf-panel.collapsed .compact-toolbar {
+            display: none !important;
         }
 
         .trace-panel.collapsed {
-            width: 0 !important;
-            padding: 0 !important;
+            width: 40px !important;
+            min-width: 40px !important;
+            padding: 8px !important;
             overflow: hidden !important;
-            min-width: 0 !important;
-            border: none !important;
+            border-left: 1px solid var(--gray-300) !important;
+        }
+        .trace-panel.collapsed > *:not(.panel-header) {
+            display: none !important;
+        }
+        .trace-panel.collapsed .panel-header {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+        }
+        .trace-panel.collapsed .panel-header h3 {
+            font-size: 12px;
+            margin: 8px 0;
         }
 
         /* Adjust layout when panels are collapsed */
@@ -977,6 +1030,169 @@
         .pdf-panel .panel-header {
             display: flex;
             justify-content: flex-end;
+        }
+
+        /* Vision Extraction Button Styles */
+        #vision-extract-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        #vision-extract-btn.processing {
+            animation: vision-button-pulse 1s ease-in-out infinite;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        @keyframes vision-button-pulse {
+            0%, 100% {
+                box-shadow: 0 0 8px rgba(245, 87, 108, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 16px rgba(245, 87, 108, 1);
+            }
+        }
+
+        #vision-status {
+            animation: fadeIn 0.3s ease-in-out;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        #vision-status.success {
+            color: #4caf50;
+        }
+
+        #vision-status.error {
+            color: #ff5722;
+        }
+
+        #vision-status.loading {
+            color: #ffc107;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        /* Vision Extraction Results Panel */
+        .vision-results-panel {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f5ff 100%);
+            border: 1px solid #b3d7ff;
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .vision-results-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+            font-weight: bold;
+            color: #1565c0;
+        }
+
+        .vision-results-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-sm);
+            margin: var(--spacing-sm) 0;
+        }
+
+        .vision-stat {
+            background: white;
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            border-left: 3px solid #1565c0;
+            font-size: 13px;
+        }
+
+        .vision-stat-label {
+            color: #666;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .vision-stat-value {
+            color: #1565c0;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+
+        .vision-action-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .vision-action-btn {
+            background: #1565c0;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .vision-action-btn:hover {
+            background: #0d47a1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(21, 101, 192, 0.3);
+        }
+
+        .vision-action-btn:disabled {
+            background: #bbb;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .vision-action-btn.secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .vision-action-btn.secondary:hover {
+            background: #d0d0d0;
+        }
+
+        /* Loading State Animations */
+        .vision-loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #ffc107;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 6px;
+        }
+
+        /* Vision Highlight Refinements */
+        .vision-highlight-group {
+            background: rgba(100, 200, 255, 0.1);
+            border-left: 3px solid #1565c0;
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+        }
+
+        .vision-highlight-title {
+            font-weight: bold;
+            color: #1565c0;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .vision-highlight-count {
+            background: #e3f2fd;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: var(--border-radius-sm);
+            font-size: 11px;
+            color: #0d47a1;
         }
     </style>
 <script type="importmap">
@@ -1324,6 +1540,10 @@
                 <select id="pdf-library-select" style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc; background: white; font-size: 14px; min-width: 250px;" aria-label="Select PDF from library">
                     <option value="">Select a PDF from library...</option>
                 </select>
+                <input type="file" id="pdf-file-input" accept="application/pdf" style="display: none;" />
+                <button onclick="document.getElementById('pdf-file-input').click()" style="padding: 6px 12px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;" title="Upload PDF to local library">
+                    📤 Upload
+                </button>
                 <button id="pdf-prev-page" aria-label="Previous Page">◄</button>
                 <span class="toolbar-text">
                     Page <input type="number" id="page-num" value="1" min="1" aria-label="Page number">
@@ -1340,43 +1560,73 @@
                 <span id="active-field-indicator">No field selected</span>
             </div>
 
-            <!-- New: Figure & Table Extraction Controls -->
-            <div class="extraction-toolbar" style="padding: 8px; background: #f5f5f5; border-bottom: 1px solid #ddd; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <!-- HERO BUTTON: Full AI Pipeline -->
-                <button onclick="runFullAIPipeline()" style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" title="Run full multi-agent pipeline: Extract → Classify → Route → Enhance → Validate">
-                    🚀 FULL AI ANALYSIS
-                </button>
-                <span style="margin: 0 8px; color: #999;">|</span>
-                <strong style="color: #1976d2; margin-right: 8px;">📊 Manual Tools:</strong>
-                <button onclick="extractFiguresFromPDF()" class="btn-extraction" style="padding: 6px 12px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title="Extract all figures from PDF using operator interception">
-                    🖼️ Figures
-                </button>
-                <button onclick="extractTablesFromPDF()" class="btn-extraction" style="padding: 6px 12px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title="Extract tables using geometric detection">
-                    📊 Tables
-                </button>
-                <span style="margin: 0 8px; color: #999;">|</span>
-                <strong style="color: #666; margin-right: 4px;">Visualization:</strong>
-                <button onclick="toggleBoundingBoxes()" class="btn-viz" id="bbox-toggle" style="padding: 6px 12px; background: #ff9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title="Show/hide bounding boxes with coordinate provenance">
-                    🔲 Provenance
-                </button>
-                <button onclick="toggleTableRegions()" class="btn-viz" id="table-toggle" style="padding: 6px 12px; background: #9c27b0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title="Show/hide detected table regions">
-                    📋 Tables
-                </button>
+            <!-- Compact Modern Toolbar Carousel -->
+            <div class="compact-toolbar" style="padding: 6px 8px; background: linear-gradient(90deg, #1a1a2e 0%, #16213e 100%); border-bottom: 1px solid #0f3460; display: flex; gap: 4px; align-items: center; overflow-x: auto; white-space: nowrap;">
+                <!-- AI Extraction -->
+                <button onclick="runFullAIPipeline()" class="tb-btn tb-primary" title="Full multi-agent extraction">🚀 AI</button>
+                <button id="vision-extract-btn" onclick="triggerVisionExtraction()" class="tb-btn tb-accent" title="Vision-based extraction with bounding boxes (click to start)">👁️ Vision</button>
+                <span id="vision-status" style="font-size: 12px; color: #fff; padding: 0 8px; display: none; white-space: nowrap;"></span>
+                <!-- AI Provider Selector -->
+                <select id="ai-provider-select" onchange="switchAIProvider(this.value)" class="tb-select" title="Select AI provider">
+                    <option value="gemini">🔮 Gemini</option>
+                    <option value="anthropic">🧠 Claude</option>
+                    <option value="openai">🤖 GPT</option>
+                </select>
+                <button onclick="openAISettingsModal()" class="tb-btn" style="background: #455a64; padding: 4px 8px;" title="AI Provider Settings">🔑</button>
+                <span class="tb-divider"></span>
+                <!-- Extract -->
+                <button onclick="extractFiguresFromPDF()" class="tb-btn tb-green" title="Extract figures">🖼️</button>
+                <button onclick="extractTablesFromPDF()" class="tb-btn tb-blue" title="Extract tables">📊</button>
+                <span class="tb-divider"></span>
+                <!-- View -->
+                <button onclick="toggleBoundingBoxes()" class="tb-btn tb-orange" id="bbox-toggle" title="Toggle provenance boxes">🔲</button>
+                <button onclick="toggleTableRegions()" class="tb-btn tb-purple" id="table-toggle" title="Toggle table regions">📋</button>
+                <span class="tb-divider"></span>
+                <!-- Services -->
+                <button onclick="toggleSemanticSearch()" class="tb-btn tb-cyan" id="search-toggle" title="Semantic search">🔍</button>
+                <button onclick="toggleAnnotationTools()" class="tb-btn tb-red" id="annotation-toggle" title="Annotation tools">✏️</button>
+                <button onclick="configureBackendProxy()" class="tb-btn tb-gray" title="Proxy settings">⚙️</button>
             </div>
-
-            <!-- New: Integrated Services Toolbar -->
-            <div class="services-toolbar" style="padding: 8px; background: #e8f5e9; border-bottom: 1px solid #c8e6c9; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <strong style="color: #2e7d32; margin-right: 8px;">🔧 Services:</strong>
-                <button onclick="toggleSemanticSearch()" class="btn-service" id="search-toggle" style="padding: 6px 12px; background: #00bcd4; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title="Toggle semantic search panel">
-                    🔍 Search
-                </button>
-                <button onclick="toggleAnnotationTools()" class="btn-service" id="annotation-toggle" style="padding: 6px 12px; background: #ff5722; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title="Toggle annotation toolbar">
-                    ✏️ Annotate
-                </button>
-                <button onclick="configureBackendProxy()" class="btn-service" style="padding: 6px 12px; background: #607d8b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px;" title="Configure backend proxy settings">
-                    ⚙️ Proxy
-                </button>
-            </div>
+            <style>
+                .compact-toolbar { scrollbar-width: thin; scrollbar-color: #0f3460 transparent; }
+                .compact-toolbar::-webkit-scrollbar { height: 4px; }
+                .compact-toolbar::-webkit-scrollbar-thumb { background: #0f3460; border-radius: 2px; }
+                .tb-btn {
+                    padding: 6px 10px;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: white;
+                    transition: all 0.15s ease;
+                    flex-shrink: 0;
+                }
+                .tb-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+                .tb-btn:active { transform: scale(0.98); }
+                .tb-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+                .tb-accent { background: linear-gradient(135deg, #f093fb, #f5576c); }
+                .tb-green { background: #4caf50; }
+                .tb-blue { background: #2196f3; }
+                .tb-orange { background: #ff9800; }
+                .tb-purple { background: #9c27b0; }
+                .tb-cyan { background: #00bcd4; }
+                .tb-red { background: #ff5722; }
+                .tb-gray { background: #607d8b; }
+                .tb-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px; flex-shrink: 0; }
+                .tb-select {
+                    padding: 4px 8px;
+                    border: 1px solid rgba(255,255,255,0.3);
+                    border-radius: 4px;
+                    background: rgba(255,255,255,0.1);
+                    color: white;
+                    font-size: 11px;
+                    cursor: pointer;
+                    flex-shrink: 0;
+                }
+                .tb-select:hover { background: rgba(255,255,255,0.2); }
+                .tb-select option { background: #1a1a2e; color: white; }
+            </style>
 
             <!-- Semantic Search Panel (Hidden by default) -->
             <div id="semantic-search-panel" style="display: none; padding: 12px; background: #f0f9ff; border-bottom: 1px solid #b3e5fc;">
@@ -1558,6 +1808,504 @@
         } else {
             restorePanelStates();
         }
+
+        /**
+         * AI Provider Switcher
+         * Switches between Gemini, Anthropic, and OpenAI
+         */
+        function switchAIProvider(provider) {
+            if (window.ClinicalExtractor && window.ClinicalExtractor.setAIProvider) {
+                window.ClinicalExtractor.setAIProvider(provider);
+                const providerNames = {
+                    gemini: 'Gemini',
+                    anthropic: 'Claude (Anthropic)',
+                    openai: 'GPT (OpenAI)'
+                };
+                console.log(`🔄 Switched to ${providerNames[provider] || provider}`);
+
+                // Show brief notification
+                const select = document.getElementById('ai-provider-select');
+                if (select) {
+                    select.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.8)';
+                    setTimeout(() => {
+                        select.style.boxShadow = 'none';
+                    }, 500);
+                }
+            } else {
+                console.warn('ClinicalExtractor.setAIProvider not available');
+            }
+        }
+
+        /**
+         * Vision Extraction Handler
+         * Triggers the PDFProcessingAgent and manages UI state
+         */
+        async function triggerVisionExtraction() {
+            const btn = document.getElementById('vision-extract-btn');
+            const statusEl = document.getElementById('vision-status');
+
+            // Check if PDF is loaded
+            if (!window.ClinicalExtractor || !window.ClinicalExtractor.getState) {
+                showVisionStatus('No PDF loaded', 'error');
+                return;
+            }
+
+            const state = window.ClinicalExtractor.getState();
+            if (!state || !state.pdfDoc) {
+                showVisionStatus('Please upload a PDF first', 'error');
+                return;
+            }
+
+            // Prevent multiple simultaneous extractions
+            if (btn.classList.contains('processing')) {
+                return;
+            }
+
+            try {
+                // Show loading state
+                btn.classList.add('processing');
+                showVisionStatus('Processing...', 'loading');
+
+                // Call the vision extraction function
+                const result = await window.ClinicalExtractor.processFullDocument();
+
+                if (result && result.extraction) {
+                    // Success - display stats
+                    const coordCount = result.coordinates ? Object.keys(result.coordinates).length : 0;
+                    showVisionStatus(`Extracted ${coordCount} fields`, 'success');
+
+                    // Display results panel in trace log
+                    displayVisionResults(result);
+
+                    // Optionally highlight the extractions on PDF
+                    if (result.coordinates && window.ClinicalExtractor.highlightExtractions) {
+                        window.ClinicalExtractor.highlightExtractions(result.coordinates);
+                    }
+
+                    // Show success notification
+                    showExtractionStatus(`Vision extraction complete! Found ${coordCount} data fields with coordinates.`);
+                } else {
+                    showVisionStatus('Extraction failed', 'error');
+                    showExtractionStatus('Vision extraction failed. Check console for errors.');
+                }
+            } catch (error) {
+                console.error('Vision extraction error:', error);
+                showVisionStatus('Error occurred', 'error');
+                showExtractionStatus(`Vision extraction error: ${error.message}`);
+            } finally {
+                // Reset button state after 2 seconds
+                setTimeout(() => {
+                    btn.classList.remove('processing');
+                    statusEl.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        /**
+         * Show vision extraction status message
+         * @param {string} message - Status message to display
+         * @param {string} type - Status type: 'loading', 'success', or 'error'
+         */
+        function showVisionStatus(message, type = 'loading') {
+            const statusEl = document.getElementById('vision-status');
+            statusEl.textContent = message;
+            statusEl.className = type;
+            statusEl.style.display = 'inline-block';
+        }
+
+        /**
+         * Display vision extraction results in the trace panel
+         * @param {object} result - Result object with extraction and coordinates
+         */
+        function displayVisionResults(result) {
+            const traceLog = document.getElementById('trace-log');
+            if (!traceLog) return;
+
+            const resultsPanel = document.createElement('div');
+            resultsPanel.className = 'vision-results-panel';
+
+            // Header
+            const header = document.createElement('div');
+            header.className = 'vision-results-header';
+            header.innerHTML = '👁️ Vision Extraction Results';
+            resultsPanel.appendChild(header);
+
+            // Stats
+            if (result.processingStats) {
+                const stats = result.processingStats;
+                const statsDiv = document.createElement('div');
+                statsDiv.className = 'vision-results-stats';
+                statsDiv.innerHTML = `
+                    <div class="vision-stat">
+                        <div class="vision-stat-label">Pages Processed</div>
+                        <div class="vision-stat-value">${stats.pagesProcessed || 0}</div>
+                    </div>
+                    <div class="vision-stat">
+                        <div class="vision-stat-label">API Calls</div>
+                        <div class="vision-stat-value">${stats.apiCalls || 0}</div>
+                    </div>
+                    <div class="vision-stat">
+                        <div class="vision-stat-label">Processing Time</div>
+                        <div class="vision-stat-value">${Math.round(stats.totalTime / 1000)}s</div>
+                    </div>
+                    <div class="vision-stat">
+                        <div class="vision-stat-label">Est. Cost</div>
+                        <div class="vision-stat-value">$${(stats.estimatedCost || 0).toFixed(3)}</div>
+                    </div>
+                `;
+                resultsPanel.appendChild(statsDiv);
+            }
+
+            // Fields extracted
+            if (result.coordinates) {
+                const coordKeys = Object.keys(result.coordinates);
+                if (coordKeys.length > 0) {
+                    const fieldsDiv = document.createElement('div');
+                    fieldsDiv.innerHTML = `<strong>Fields with Coordinates:</strong> ${coordKeys.length}`;
+                    resultsPanel.appendChild(fieldsDiv);
+                }
+            }
+
+            // Action buttons
+            const actionButtons = document.createElement('div');
+            actionButtons.className = 'vision-action-buttons';
+
+            const clearBtn = document.createElement('button');
+            clearBtn.type = 'button';
+            clearBtn.className = 'vision-action-btn secondary';
+            clearBtn.textContent = 'Clear Highlights';
+            clearBtn.onclick = () => {
+                if (window.ClinicalExtractor && window.ClinicalExtractor.clearHighlights) {
+                    window.ClinicalExtractor.clearHighlights();
+                }
+            };
+            actionButtons.appendChild(clearBtn);
+
+            const exportBtn = document.createElement('button');
+            exportBtn.type = 'button';
+            exportBtn.className = 'vision-action-btn';
+            exportBtn.textContent = 'Export Results';
+            exportBtn.onclick = () => {
+                if (window.ClinicalExtractor && window.ClinicalExtractor.exportExtractions) {
+                    window.ClinicalExtractor.exportExtractions('json');
+                }
+            };
+            actionButtons.appendChild(exportBtn);
+
+            resultsPanel.appendChild(actionButtons);
+
+            // Insert at top of trace log
+            if (traceLog.firstChild) {
+                traceLog.insertBefore(resultsPanel, traceLog.firstChild);
+            } else {
+                traceLog.appendChild(resultsPanel);
+            }
+        }
+
+        /**
+         * Show extraction status message (bottom right toast)
+         * Used for general status updates
+         */
+        function showExtractionStatus(message) {
+            const statusEl = document.getElementById('extraction-status');
+            if (statusEl) {
+                const msgEl = document.getElementById('status-message');
+                if (msgEl) {
+                    msgEl.textContent = message;
+                    statusEl.classList.add('show');
+
+                    // Auto-hide after 5 seconds
+                    setTimeout(() => {
+                        statusEl.classList.remove('show');
+                    }, 5000);
+                }
+            }
+        }
+    </script>
+
+    <!-- AI Settings Modal -->
+    <div id="ai-settings-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3 style="margin: 0;">🔑 AI Provider Settings</h3>
+                <button onclick="closeAISettingsModal()" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Gemini -->
+                <div class="provider-section">
+                    <div class="provider-header">
+                        <span>🔮 Gemini (Google)</span>
+                        <span id="gemini-status" class="status-badge">●</span>
+                    </div>
+                    <input type="password" id="gemini-api-key" placeholder="API Key (AIza...)" class="api-key-input">
+                    <select id="gemini-model" class="model-select">
+                        <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+                        <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+                        <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+                    </select>
+                </div>
+
+                <!-- Anthropic -->
+                <div class="provider-section">
+                    <div class="provider-header">
+                        <span>🧠 Claude (Anthropic)</span>
+                        <span id="anthropic-status" class="status-badge">●</span>
+                    </div>
+                    <input type="password" id="anthropic-api-key" placeholder="API Key (sk-ant-...)" class="api-key-input">
+                    <select id="anthropic-model" class="model-select">
+                        <option value="claude-sonnet-4-20250514">claude-sonnet-4</option>
+                        <option value="claude-3-5-sonnet-20241022">claude-3.5-sonnet</option>
+                        <option value="claude-3-haiku-20240307">claude-3-haiku</option>
+                    </select>
+                </div>
+
+                <!-- OpenAI -->
+                <div class="provider-section">
+                    <div class="provider-header">
+                        <span>🤖 GPT (OpenAI)</span>
+                        <span id="openai-status" class="status-badge">●</span>
+                    </div>
+                    <input type="password" id="openai-api-key" placeholder="API Key (sk-proj-...)" class="api-key-input">
+                    <select id="openai-model" class="model-select">
+                        <option value="gpt-4o">gpt-4o</option>
+                        <option value="gpt-4-turbo">gpt-4-turbo</option>
+                        <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    </select>
+                </div>
+
+                <div class="modal-note">
+                    <small>⚠️ API keys are stored in browser localStorage. For production, use environment variables.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="testSelectedProvider()" class="btn-test">🧪 Test</button>
+                <button onclick="saveAISettings()" class="btn-save">💾 Save</button>
+                <button onclick="closeAISettingsModal()" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .modal-content {
+            background: #1a1a2e;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #333;
+            color: white;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .modal-close:hover { color: white; }
+        .modal-body {
+            padding: 20px;
+        }
+        .provider-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        .provider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            color: white;
+            font-weight: 500;
+        }
+        .status-badge {
+            font-size: 12px;
+        }
+        .status-badge.configured { color: #4caf50; }
+        .status-badge.not-configured { color: #666; }
+        .api-key-input, .model-select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            background: #0d0d1a;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .api-key-input:focus, .model-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .modal-note {
+            color: #888;
+            padding: 10px;
+            background: rgba(255, 152, 0, 0.1);
+            border-radius: 6px;
+            text-align: center;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 20px;
+            border-top: 1px solid #333;
+        }
+        .modal-footer button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-save {
+            background: #4caf50;
+            color: white;
+        }
+        .btn-test {
+            background: #2196f3;
+            color: white;
+        }
+        .btn-cancel {
+            background: #333;
+            color: white;
+        }
+        .btn-save:hover { background: #45a049; }
+        .btn-test:hover { background: #1976d2; }
+        .btn-cancel:hover { background: #444; }
+    </style>
+
+    <script>
+        // AI Settings Modal Functions
+        function openAISettingsModal() {
+            const modal = document.getElementById('ai-settings-modal');
+            modal.style.display = 'flex';
+            loadAISettings();
+        }
+
+        function closeAISettingsModal() {
+            document.getElementById('ai-settings-modal').style.display = 'none';
+        }
+
+        function loadAISettings() {
+            // Load from localStorage or show current env values
+            const settings = JSON.parse(localStorage.getItem('ai_provider_settings') || '{}');
+
+            // Check which providers are configured
+            if (window.ClinicalExtractor) {
+                const available = window.ClinicalExtractor.getAvailableProviders();
+
+                document.getElementById('gemini-status').className =
+                    'status-badge ' + (available.includes('gemini') ? 'configured' : 'not-configured');
+                document.getElementById('anthropic-status').className =
+                    'status-badge ' + (available.includes('anthropic') ? 'configured' : 'not-configured');
+                document.getElementById('openai-status').className =
+                    'status-badge ' + (available.includes('openai') ? 'configured' : 'not-configured');
+            }
+
+            // Load saved keys (masked)
+            if (settings.gemini?.apiKey) {
+                document.getElementById('gemini-api-key').value = settings.gemini.apiKey;
+            }
+            if (settings.anthropic?.apiKey) {
+                document.getElementById('anthropic-api-key').value = settings.anthropic.apiKey;
+            }
+            if (settings.openai?.apiKey) {
+                document.getElementById('openai-api-key').value = settings.openai.apiKey;
+            }
+
+            // Load model selections
+            if (settings.gemini?.model) {
+                document.getElementById('gemini-model').value = settings.gemini.model;
+            }
+            if (settings.anthropic?.model) {
+                document.getElementById('anthropic-model').value = settings.anthropic.model;
+            }
+            if (settings.openai?.model) {
+                document.getElementById('openai-model').value = settings.openai.model;
+            }
+        }
+
+        function saveAISettings() {
+            const settings = {
+                gemini: {
+                    apiKey: document.getElementById('gemini-api-key').value,
+                    model: document.getElementById('gemini-model').value
+                },
+                anthropic: {
+                    apiKey: document.getElementById('anthropic-api-key').value,
+                    model: document.getElementById('anthropic-model').value
+                },
+                openai: {
+                    apiKey: document.getElementById('openai-api-key').value,
+                    model: document.getElementById('openai-model').value
+                }
+            };
+
+            localStorage.setItem('ai_provider_settings', JSON.stringify(settings));
+
+            // Show success feedback
+            alert('✅ Settings saved! Note: For API keys to take effect, you need to set them in .env.local and restart the dev server.');
+            closeAISettingsModal();
+        }
+
+        async function testSelectedProvider() {
+            const provider = window.ClinicalExtractor?.getAIProvider() || 'gemini';
+            const testBtn = document.querySelector('.btn-test');
+            testBtn.textContent = '⏳ Testing...';
+            testBtn.disabled = true;
+
+            try {
+                // Simple test generation
+                const result = await window.ClinicalExtractor.MultiProviderAIClient.generate({
+                    prompt: 'Say "Hello" in one word.',
+                    maxTokens: 10
+                });
+
+                alert(`✅ ${provider.toUpperCase()} is working!\n\nResponse: "${result.text}"\nModel: ${result.model}`);
+            } catch (error) {
+                alert(`❌ ${provider.toUpperCase()} test failed!\n\nError: ${error.message}`);
+            } finally {
+                testBtn.textContent = '🧪 Test';
+                testBtn.disabled = false;
+            }
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAISettingsModal();
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById('ai-settings-modal')?.addEventListener('click', (e) => {
+            if (e.target.id === 'ai-settings-modal') {
+                closeAISettingsModal();
+            }
+        });
     </script>
 
     <script type="module" src="/src/main.ts"></script>

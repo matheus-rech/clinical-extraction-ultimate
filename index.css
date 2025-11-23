@@ -103,6 +103,49 @@ body {
     outline-offset: -1px;
 }
 
+/* ==================== VISION EXTRACTION HIGHLIGHTS ==================== */
+.vision-highlight {
+    position: absolute;
+    background-color: rgba(255, 255, 0, 0.3);
+    border: 2px solid rgba(255, 200, 0, 0.8);
+    pointer-events: none;
+    z-index: 100;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 8px rgba(255, 200, 0, 0.4);
+    animation: vision-pulse 2s ease-in-out infinite;
+}
+
+.vision-highlight:hover {
+    background-color: rgba(255, 255, 0, 0.5);
+    border-color: rgba(255, 150, 0, 1);
+    box-shadow: 0 0 12px rgba(255, 150, 0, 0.6);
+}
+
+@keyframes vision-pulse {
+    0%, 100% {
+        box-shadow: 0 0 8px rgba(255, 200, 0, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 16px rgba(255, 200, 0, 0.7);
+    }
+}
+
+/* Field-specific highlight colors */
+.vision-highlight[data-field^="studyIdentification"] {
+    background-color: rgba(100, 200, 255, 0.3);
+    border-color: rgba(50, 150, 255, 0.8);
+}
+
+.vision-highlight[data-field^="eligibility"] {
+    background-color: rgba(150, 255, 150, 0.3);
+    border-color: rgba(50, 200, 50, 0.8);
+}
+
+.vision-highlight[data-field^="outcomes"] {
+    background-color: rgba(255, 150, 200, 0.3);
+    border-color: rgba(255, 100, 150, 0.8);
+}
+
 /* ==================== HIGHLIGHT CLASS (Search Results) ==================== */
 .textLayer span.highlight {
     background-color: rgba(255, 255, 0, 0.6) !important;

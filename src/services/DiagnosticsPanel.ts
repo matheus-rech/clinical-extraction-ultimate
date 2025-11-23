@@ -369,7 +369,7 @@ class DiagnosticsPanel {
       }
     } catch (e: any) {
       this.status.backend = 'error';
-      this.addLog(`❌ Backend Unreachable: ${e.message || 'Unknown error'}`);
+      this.addLog(`ℹ️ Backend not available - using direct Gemini API (frontend-only mode)`);
     }
     this.updateStatusDisplay();
   }

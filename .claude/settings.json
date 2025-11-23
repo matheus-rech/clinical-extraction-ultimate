@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Plugins"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

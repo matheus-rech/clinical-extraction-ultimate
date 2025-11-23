@@ -59,16 +59,36 @@ const createClient = (): GoogleGenAI => {
     return new GoogleGenAI({ apiKey: getApiKey() });
 };
 
-// ==================== MODELS ====================
+// ==================== CONFIGURATION ====================
+
+/**
+ * Get configuration from environment variables
+ */
+const getConfig = () => ({
+    model: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-pro-preview-06-05',
+    temperature: parseFloat(import.meta.env.VITE_GEMINI_TEMPERATURE || '0.2'),
+    outputFormat: import.meta.env.VITE_GEMINI_OUTPUT_FORMAT || 'json',
+});
 
 /**
  * Model IDs for different tasks
+ * Now uses gemini-2.5-pro as default for all operations
  */
 const MODELS = {
-    FAST: 'gemini-2.0-flash',           // Fast operations
-    PRO: 'gemini-2.5-pro-preview-06-05', // Complex reasoning
-    FLASH: 'gemini-2.5-flash',           // Balanced
+    FAST: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-pro-preview-06-05',
+    PRO: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-pro-preview-06-05',
+    FLASH: import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.5-pro-preview-06-05',
 };
+
+/**
+ * Default generation config with temperature from environment
+ */
+const getGenerationConfig = () => ({
+    temperature: getConfig().temperature,
+    topP: 0.8,
+    topK: 40,
+    maxOutputTokens: 8192,
+});
 
 // ==================== DIRECT GEMINI CLIENT ====================
 
@@ -106,9 +126,10 @@ Document text:
 ${request.pdf_text}`;
 
             const response = await ai.models.generateContent({
-                model: MODELS.FLASH,
+                model: MODELS.PRO,
                 contents: prompt,
                 config: {
+                    ...getGenerationConfig(),
                     responseMimeType: 'application/json',
                     responseSchema: {
                         type: Type.OBJECT,
@@ -152,8 +173,9 @@ Document text:
 ${request.pdf_text}`;
 
             const response = await ai.models.generateContent({
-                model: MODELS.FAST,
+                model: MODELS.PRO,
                 contents: prompt,
+                config: getGenerationConfig(),
             });
 
             return { summary: response.text || '' };
@@ -189,6 +211,7 @@ ${request.pdf_text}`;
                 model: MODELS.PRO,
                 contents: prompt,
                 config: {
+                    ...getGenerationConfig(),
                     responseMimeType: 'application/json',
                     responseSchema: {
                         type: Type.OBJECT,
